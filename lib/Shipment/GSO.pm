@@ -3,7 +3,7 @@ package Shipment::GSO;
 #ABSTRACT: Shipment::GSO - Interface to Golden State Overnight Shipping Web Services
 use Shipment::GSO::Base Class;
 
-our $VERSION = '2.0.7';
+our $VERSION = '2.0.8';
 
 use Furl;
 use IO::Socket::SSL;
@@ -54,7 +54,7 @@ sub _build_pickup_date {
     my $self = shift;
 
     my $dt = $self->_test_pickup_date || DateTime->today;
-	
+
     # Weekend
     $dt->add( days => 2 ) if $dt->dow == 6;
     $dt->add( days => 1 ) if $dt->dow == 7;
@@ -137,11 +137,27 @@ sub _build_services {
                 cost => Data::Currency->new( $service->{ShipmentCharges}->{TotalCharge}, 'USD' )
             );
         }
-        $services->{ground}   = $services->{CPS} if $services->{CPS};
-        $services->{priority} = $services->{PDS} if $services->{PDS};
     }
 
     $services;
+}
+
+sub all_services {
+    my $self = shift;
+
+    my $services = $self->services;
+    my $rates    = [];
+    for my $k ( keys %$services ) {
+        push @$rates,
+            {
+            id   => $k,
+            code => $k,
+            name => $services->{$k}->name,
+            cost => $services->{$k}->cost->value
+            };
+    }
+
+    @$rates;
 }
 
 =head2 rate
@@ -158,7 +174,7 @@ sub rate {
     try {
         $service_id = $self->services->{$service_id}->id;
     } catch {
-        warn $_ if $self->debug;
+        warn $_                                    if $self->debug;
         warn "service ($service_id) not available" if $self->debug;
         $self->error("service ($service_id) not available; $_");
         $service_id = '';
@@ -197,7 +213,7 @@ sub _token {
     return $_token if $_token;
 
     my $furl = Furl->new( ssl_opts => { SSL_cipher_list => 'DEFAULT@SECLEVEL=1' } );
-    my $res = $furl->get(
+    my $res  = $furl->get(
         $self->_endpoint . '/token',
         [   account  => $self->account,
             username => $self->username,
