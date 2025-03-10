@@ -1,9 +1,9 @@
-package Shipment::GSO;
+package Shipment::GLS;
 
-#ABSTRACT: Shipment::GSO - Interface to Golden State Overnight Shipping Web Services
-use Shipment::GSO::Base Class;
+#ABSTRACT: Shipment::GLS - Interface to Golden State Overnight Shipping Web Services
+use Shipment::GLS::Base Class;
 
-our $VERSION = '2.0.8';
+our $VERSION = '2.1.0';
 
 use Furl;
 use IO::Socket::SSL;
@@ -17,7 +17,7 @@ extends 'Shipment::Base';
 
 =head2 username, password, account
 
-Credentials required to access GSO Web Service
+Credentials required to access GLS Web Service
 
 =cut
 
@@ -43,7 +43,7 @@ has 'pickup_service' => (
 
 =head2 pickup_date
 
-From GSO: Date when the shipment will be shipped. Ship date should be within 5 business days excluding weekends
+From GLS: Date when the shipment will be shipped. Ship date should be within 5 business days excluding weekends
 and service holidays.
 
 =cut
@@ -88,12 +88,12 @@ sub _build_pickup_date {
 
 =head2 _build_services
 
-This calls GetShippingRatesAndTimes from the GSO web service.
+This calls GetShippingRatesAndTimes from the GLS web service.
 
 Each DeliveryService that is returned is added to services
 
 The following service mapping is used:
-  * ground => 'CPS' (GSO Ground)
+  * ground => 'CPS' (GLS Ground)
   * priority => 'PDS' (Priority Overnight)
 
 =cut
@@ -190,17 +190,17 @@ sub rate {
 
 The API endpoint.
 
-https://api.gso.com/Rest/v1
+https://api.gls-us.com/Rest/v1
 
 =cut
 
 sub _endpoint {
-    'https://api.gso.com/Rest/v1';
+    'https://api.gls-us.com/Rest/v1';
 }
 
 =head2 _token
 
-GSO uses a two step authentication process. This method gets the authentication token from GSO. Each request to GSO
+GLS uses a two step authentication process. This method gets the authentication token from GLS. Each request to GLS
 must have this token.
 
 =cut
@@ -241,7 +241,7 @@ sub _rest {
     my $rest = REST::Client->new(
         host      => $self->_endpoint,
         useragent => LWP::UserAgent->new(
-            agent    => 'Bottlenose-GSO-Shipment/2.0.5',
+            agent    => 'Bottlenose-GLS-Shipment/2.0.5',
             ssl_opts => { SSL_cipher_list => 'DEFAULT@SECLEVEL=1' }
         )
     );
