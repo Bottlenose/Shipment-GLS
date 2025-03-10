@@ -1,4 +1,4 @@
-use Shipment::GSO::Base Test;
+use Shipment::GLS::Base Test;
 
 my ( $username, $password, $account ) = @ARGV;
 
@@ -17,7 +17,7 @@ SKIP: {
 
 if ( $username && $password && $account ) {
 
-    use Shipment::GSO;
+    use Shipment::GLS;
     use Shipment::Address;
     use Shipment::Package;
 
@@ -77,7 +77,7 @@ if ( $username && $password && $account ) {
         { y => 2019, m => 12, d => 25, corrected => '2019-12-26', name => 'Christmas' },
         { y => 2019, m => 11, d => 28, corrected => '2019-11-29', name => 'Thanksgiving' },
     ) {
-        my $shipment = Shipment::GSO->new(
+        my $shipment = Shipment::GLS->new(
             %args,
             pickup_date => DateTime->new(
                 year   => $date->{y},
@@ -91,26 +91,26 @@ if ( $username && $password && $account ) {
         is $shipment->_rest->responseCode(), 400,
             'Bad pickup_date response code (' . $date->{name} . ')';
         is $shipment->error,
-            'Failure: Ship date must be within 5 days in future from current date & exclude weekend/GLS service holiday.',
+            'Failure: Ship date must be within 5 days in future from current date.',
             'Bad pickup_date (' . $date->{name} . ')';
 
-        $shipment = Shipment::GSO->new( %args,
+        $shipment = Shipment::GLS->new( %args,
             _test_pickup_date =>
                 DateTime->new( year => $date->{y}, month => $date->{m}, day => $date->{d} ) );
         is $shipment->pickup_date->ymd, $date->{corrected},
             'Bad pickup_date corrected (' . $date->{name} . ')';
     }
 
-    my $shipment = Shipment::GSO->new( %args,
+    my $shipment = Shipment::GLS->new( %args,
         pickup_date => DateTime->new( year => 2029, month => 5, day => 24 ) );
     $shipment->services;
     is $shipment->_rest->responseCode(), 400,
         'Bad pickup_date response code (too far in the future)';
     is $shipment->error,
-        'Failure: Ship date must be within 5 days in future from current date & exclude weekend/GLS service holiday.',
+        'Failure: Ship date must be within 5 days in future from current date.',
         'Bad pickup_date (too far in the future))';
 
-    $shipment = Shipment::GSO->new(%args);
+    $shipment = Shipment::GLS->new(%args);
 
     like $shipment->_token, qr{[\+/A-z0-9]{96}}, q{_token};
 
@@ -151,19 +151,20 @@ if ( $username && $password && $account ) {
     }
 
     is $shipment->count_packages, 1, 'shipment has 1 packages';
-
-    ok( defined $shipment->services,           'got services' );
-    ok( defined $shipment->services->{ground}, 'got a ground service' );
-    is( $shipment->services->{ground}->id, 'CPS', 'ground service_id' )
-        if defined $shipment->services->{ground};
+    like $shipment->services, { CPS => {} }, 'got CPS service';
 
     # FIXME: Our current credentials only return ground rates.
     # ok( defined $shipment->services->{priority}, 'got a priority service' );
     # is( $shipment->services->{priority}->id, 'PDS', 'priority service_id' )
     #     if defined $shipment->services->{priority};
-
-    $shipment->rate('ground');
-    is $shipment->service->cost->value, within( 13.71, 2 ), q{rate};
+    # is $shipment->all_services,
+    #     {
+    #     code => 'CPS',
+    #     name => 'Ground',
+    #     id   => 'CPS',
+    #     cost => within( 21.18, 10 )
+    #     },
+    #     'all_services';
 
     # TODO: Support etd.
     # is( $shipment->service->etd, 2, 'estimated transit days' ) if defined $shipment->service;

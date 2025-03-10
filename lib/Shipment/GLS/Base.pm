@@ -1,6 +1,6 @@
-package Shipment::GSO::Base;
+package Shipment::GLS::Base;
 
-# ABSTRACT: Shipment::GSO Base imports
+# ABSTRACT: Shipment::GLS Base imports
 use strict;
 use warnings;
 use base 'Import::Base';
@@ -19,12 +19,12 @@ __END__
 
 =head1 NAME
 
-Shipment::GSO::Base
+Shipment::GLS::Base
 
 =head1 SYNOPSIS
 
-    package Shipment::GSO::MyPackage;
-    use Shipment::GSO::Base;
+    package Shipment::GLS::MyPackage;
+    use Shipment::GLS::Base;
 
 =head1 DESCRIPTION
 
