@@ -1,5 +1,5 @@
 [TestingAndDebugging::RequireUseStrict]
-equivalent_modules = Shipment::GSO::Base
+equivalent_modules = Shipment::GLS::Base
 
 [TestingAndDebugging::RequireUseWarnings]
-equivalent_modules = Shipment::GSO::Base
+equivalent_modules = Shipment::GLS::Base
